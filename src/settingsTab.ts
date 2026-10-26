@@ -87,8 +87,9 @@ export class NamedLinksSettingTab extends PluginSettingTab {
       [key]: value,
     });
     await this.plugin.saveSettings();
-    // The custom format field shows only for the Custom preset.
-    if (key === 'linkFormat') this.refreshDomState();
+    // The custom format field shows only for the Custom preset, and the
+    // X embed options grey out while embedding itself is off.
+    if (key === 'linkFormat' || key === 'tweetEmbed') this.refreshDomState();
   }
 
   private templateError(error: TemplateError | null): string | undefined {
@@ -305,6 +306,7 @@ export class NamedLinksSettingTab extends PluginSettingTab {
             ...s.tweetEmbedMedia,
             control: {
               type: 'toggle',
+              disabled: () => !this.plugin.settings.tweetEmbed,
               key: 'tweetEmbedMedia',
               defaultValue: DEFAULT_SETTINGS.tweetEmbedMedia,
             },
@@ -312,6 +314,7 @@ export class NamedLinksSettingTab extends PluginSettingTab {
           {
             ...s.tweetEmbedFormat,
             control: {
+              disabled: () => !this.plugin.settings.tweetEmbed,
               type: 'dropdown',
               key: 'tweetEmbedFormat',
               defaultValue: DEFAULT_SETTINGS.tweetEmbedFormat,
@@ -325,6 +328,7 @@ export class NamedLinksSettingTab extends PluginSettingTab {
             ...s.fxApiBase,
             control: {
               type: 'text',
+              disabled: () => !this.plugin.settings.tweetEmbed,
               key: 'fxApiBase',
               defaultValue: DEFAULT_SETTINGS.fxApiBase,
               placeholder: DEFAULT_SETTINGS.fxApiBase,
