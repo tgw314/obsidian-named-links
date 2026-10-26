@@ -97,7 +97,7 @@ const ja: Strings = {
     },
     tweetEmbedFormat: {
       name: 'X の投稿の埋め込み形式',
-      desc: '埋め込んだ投稿の形。引用（blockquote）か、タイトル行に投稿者と日時を置く Obsidian のコールアウトか。',
+      desc: '埋め込んだ投稿の表示形式を、「引用 (blockquote)」か「Obsidian のコールアウト」から指定します。コールアウトではタイトル行に投稿者と日時が表示されます。',
       blockquote: '引用',
       callout: 'コールアウト',
     },
