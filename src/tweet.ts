@@ -47,6 +47,8 @@ export interface Tweet {
   author: TweetAuthor;
   /** The day the post was made, as `YYYY-MM-DD` in UTC. */
   date: string | null;
+  /** When the post was made, as seconds since the epoch. */
+  timestamp: number | null;
   photos: TweetPhoto[];
   videos: TweetVideo[];
   poll: TweetPollChoice[] | null;
@@ -230,6 +232,7 @@ function parseTweet(value: unknown, depth: number): Tweet | null {
       timestamp !== null
         ? new Date(timestamp * 1000).toISOString().slice(0, 10)
         : null,
+    timestamp,
     photos,
     videos,
     poll: poll && poll.length > 0 ? poll : null,
@@ -283,9 +286,10 @@ export async function fetchTweet(
   }
 }
 
+/** The shapes an embedded post can take in a note. */
+export type TweetEmbedStyle = 'blockquote' | 'callout';
+
 export interface TweetEmbedLabels {
-  /** The link back to the post itself, at the foot of the embed. */
-  source: string;
   /** Alt text naming a video's thumbnail as a video. */
   video: string;
 }
@@ -293,7 +297,14 @@ export interface TweetEmbedLabels {
 export interface FormatTweetOptions {
   /** Embed the post's photos and videos under its text. */
   media: boolean;
+  /** The shape to write the post in. */
+  style: TweetEmbedStyle;
   labels: TweetEmbedLabels;
+  /**
+   * The timezone the post's time is written in, as an IANA name. Left
+   * out, the reader's own timezone is used, which is what a note wants.
+   */
+  timeZone?: string;
 }
 
 function escapeName(text: string): string {
@@ -305,14 +316,53 @@ function altTextOf(text: string | null): string {
   return (text ?? '').replace(/[[\]\n\r]/g, ' ').trim();
 }
 
-function headerOf(tweet: Tweet): string {
-  const who = `**${escapeName(tweet.author.name)} (@${tweet.author.screenName})**`;
-  return tweet.date ? `${who} · ${tweet.date}` : who;
+function profileUrlOf(tweet: Tweet): string {
+  return `https://x.com/${tweet.author.screenName}`;
+}
+
+/**
+ * When the post was made, as `YYYY-MM-DD HH:mm` in the chosen timezone,
+ * or the plain date when the API gave no time of day.
+ */
+function whenOf(tweet: Tweet, options: FormatTweetOptions): string | null {
+  if (tweet.timestamp !== null) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: options.timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(new Date(tweet.timestamp * 1000));
+    const part = (type: string) =>
+      parts.find((entry) => entry.type === type)?.value ?? '';
+    return `${part('year')}-${part('month')}-${part('day')} ${part('hour')}:${part('minute')}`;
+  }
+  return tweet.date;
+}
+
+/**
+ * Who wrote the post and when: the name links to the author's profile
+ * and the time to the post itself, so an embed needs no separate link
+ * back at its foot.
+ */
+function headerOf(tweet: Tweet, options: FormatTweetOptions): string {
+  const who = `**[${escapeName(tweet.author.name)}](${profileUrlOf(tweet)}) (@${tweet.author.screenName})**`;
+  const when = whenOf(tweet, options);
+  return when ? `${who} · [${when}](${tweet.url})` : who;
+}
+
+/** The same heading, unbolded, for a callout's title line. */
+function titleOf(tweet: Tweet, options: FormatTweetOptions): string {
+  const who = `[${escapeName(tweet.author.name)}](${profileUrlOf(tweet)}) (@${tweet.author.screenName})`;
+  const when = whenOf(tweet, options);
+  return when ? `${who} · [${when}](${tweet.url})` : who;
 }
 
 /** A post's own lines, before any quote it carries is nested into it. */
 function ownLines(tweet: Tweet, options: FormatTweetOptions): string[] {
-  const lines: string[] = [headerOf(tweet), ''];
+  const lines: string[] = [headerOf(tweet, options), ''];
   if (tweet.text !== '') lines.push(...tweet.text.split('\n'));
   if (options.media) {
     for (const photo of tweet.photos) {
@@ -349,15 +399,28 @@ function embedLines(tweet: Tweet, options: FormatTweetOptions): string[] {
 }
 
 /**
- * A post as a blockquote: who wrote it and when, its text with its links
- * expanded, its media, any quoted post nested inside it, and a link back
- * to the post.
+ * A post written into a note. As a blockquote it is a heading line —
+ * the author, linked, and the time, linking to the post — over the
+ * post's text, media and poll, with any quoted post nested a level
+ * deeper. As a callout the same heading rides on the callout's title
+ * line instead; a quoted post still nests as a plain blockquote inside
+ * it, since a callout has no title line of its own to give away.
  */
 export function formatTweetEmbed(
   tweet: Tweet,
   options: FormatTweetOptions
 ): string {
+  if (options.style === 'callout') {
+    const body = ownLines(tweet, options).slice(2);
+    if (tweet.quote) {
+      body.push('');
+      for (const line of embedLines(tweet.quote, options)) {
+        body.push(line === '' ? '>' : `> ${line}`);
+      }
+    }
+    const lines = [`[!quote] ${titleOf(tweet, options)}`, ...body];
+    return lines.map((line) => (line === '' ? '>' : `> ${line}`)).join('\n');
+  }
   const lines = embedLines(tweet, options);
-  lines.push('', `[${options.labels.source}](${tweet.url})`);
   return lines.map((line) => (line === '' ? '>' : `> ${line}`)).join('\n');
 }

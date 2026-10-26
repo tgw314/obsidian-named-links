@@ -1,6 +1,6 @@
 /** The settings shape, defaults, and the rules that read them. */
 import { DEFAULT_TEMPLATE, LINK_FORMATS, LinkFormat } from './linkFormat';
-import { DEFAULT_FX_API_BASE } from './tweet';
+import { DEFAULT_FX_API_BASE, type TweetEmbedStyle } from './tweet';
 import { domainOf, hostMatchesDomain, toAbsoluteUrl } from './url';
 
 /** What an excluded site's URL becomes when pasted. */
@@ -29,6 +29,8 @@ export interface NamedLinksSettings {
   tweetEmbed: boolean;
   /** Embed an embedded post's photos and videos under its text. */
   tweetEmbedMedia: boolean;
+  /** The shape an embedded post takes in the note. */
+  tweetEmbedFormat: TweetEmbedStyle;
   /** The FxEmbed instance tweet embeds are read from. */
   fxApiBase: string;
   /** Sites never fetched, one per line or comma separated. */
@@ -53,6 +55,7 @@ export const DEFAULT_SETTINGS: NamedLinksSettings = {
   twitterProxy: false,
   tweetEmbed: false,
   tweetEmbedMedia: true,
+  tweetEmbedFormat: 'blockquote',
   fxApiBase: DEFAULT_FX_API_BASE,
   excludedSites: '',
   excludedSiteFormat: 'url',

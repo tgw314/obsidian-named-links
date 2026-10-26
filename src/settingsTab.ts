@@ -310,6 +310,18 @@ export class NamedLinksSettingTab extends PluginSettingTab {
             },
           },
           {
+            ...s.tweetEmbedFormat,
+            control: {
+              type: 'dropdown',
+              key: 'tweetEmbedFormat',
+              defaultValue: DEFAULT_SETTINGS.tweetEmbedFormat,
+              options: {
+                blockquote: s.tweetEmbedFormat.blockquote,
+                callout: s.tweetEmbedFormat.callout,
+              },
+            },
+          },
+          {
             ...s.fxApiBase,
             control: {
               type: 'text',

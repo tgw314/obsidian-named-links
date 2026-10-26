@@ -43,6 +43,7 @@ Listed in the order the settings tab shows them.
 | Fetch X posts through FxTwitter | Off | X shows no title without JavaScript, so this looks twitter.com and x.com links up through fxtwitter.com or fixupx.com, a third-party service that then sees those URLs. |
 | Embed X posts as text | Off | A pasted X post is written into the note as a quote of its text instead of a titled link, read from the FxEmbed API, a third-party service that is sent the post's ID. A post that can't be read is titled the ordinary way instead. |
 | Embed media in X posts | On | Show an embedded post's photos and videos under its text. Videos are linked from their thumbnails. |
+| X post embed format | Block quote | The shape an embedded post takes: a block quote, or an Obsidian callout with the author and time on its title line. |
 | FxEmbed API instance | `https://api.fxtwitter.com` | Where X post embeds are read from. Change this only to use a self-hosted FxEmbed instance. |
 | **Excluded sites** | | |
 | Sites | Empty | Never fetched. See [Excluded sites](#excluded-sites). |

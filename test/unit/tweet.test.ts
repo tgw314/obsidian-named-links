@@ -63,7 +63,7 @@ const ok = (tweet: Record<string, unknown>) => ({
   author,
 });
 
-const labels = { source: 'Original post', video: 'Video' };
+const labels = { video: 'Video' };
 
 describe('tweetIdOf', () => {
   it('reads the ID out of every shape of post URL', () => {
@@ -188,21 +188,40 @@ describe('formatTweetEmbed', () => {
     text: 'just setting up my twttr',
     author: { name: 'jack', screenName: 'jack' },
     date: '2006-03-21',
+    timestamp: 1142974214,
     photos: [],
     videos: [],
     poll: null,
     quote: null,
   };
 
-  it('writes a post as a blockquote with a link back', () => {
+  it('writes a post as a blockquote, its time linking to the post', () => {
     assert.equal(
-      formatTweetEmbed(base, { media: true, labels }),
+      formatTweetEmbed(base, {
+        media: true,
+        style: 'blockquote',
+        labels,
+        timeZone: 'Asia/Tokyo',
+      }),
       [
-        '> **jack (@jack)** · 2006-03-21',
+        '> **[jack](https://x.com/jack) (@jack)** · [2006-03-22 05:50](https://x.com/jack/status/20)',
         '>',
         '> just setting up my twttr',
-        '>',
-        '> [Original post](https://x.com/jack/status/20)',
+      ].join('\n')
+    );
+  });
+
+  it('writes a post as a callout with the author on its title line', () => {
+    assert.equal(
+      formatTweetEmbed(base, {
+        media: true,
+        style: 'callout',
+        labels,
+        timeZone: 'Asia/Tokyo',
+      }),
+      [
+        '> [!quote] [jack](https://x.com/jack) (@jack) · [2006-03-22 05:50](https://x.com/jack/status/20)',
+        '> just setting up my twttr',
       ].join('\n')
     );
   });
@@ -218,14 +237,22 @@ describe('formatTweetEmbed', () => {
         },
       ],
     };
-    const embed = formatTweetEmbed(tweet, { media: true, labels });
+    const embed = formatTweetEmbed(tweet, {
+      media: true,
+      style: 'blockquote',
+      labels,
+    });
     assert.ok(embed.includes('> ![A cat](https://pbs.twimg.com/media/a.jpg)'));
     assert.ok(
       embed.includes(
         '> [![Video](https://pbs.twimg.com/thumb.jpg)](https://video.twimg.com/v.mp4)'
       )
     );
-    const bare = formatTweetEmbed(tweet, { media: false, labels });
+    const bare = formatTweetEmbed(tweet, {
+      media: false,
+      style: 'blockquote',
+      labels,
+    });
     assert.ok(!bare.includes('pbs.twimg.com'));
   });
 
@@ -235,11 +262,23 @@ describe('formatTweetEmbed', () => {
       text: 'look at this',
       quote: { ...base, id: '21', text: 'the quoted words' },
     };
-    const embed = formatTweetEmbed(tweet, { media: true, labels });
-    assert.ok(embed.includes('> > **jack (@jack)** · 2006-03-21'));
+    const embed = formatTweetEmbed(tweet, {
+      media: true,
+      style: 'blockquote',
+      labels,
+      timeZone: 'Asia/Tokyo',
+    });
+    assert.ok(embed.includes('> > **[jack](https://x.com/jack) (@jack)**'));
     assert.ok(embed.includes('> > the quoted words'));
-    // Only the outer post gets a link back.
-    assert.equal(embed.match(/Original post/g)?.length, 1);
+    const callout = formatTweetEmbed(tweet, {
+      media: true,
+      style: 'callout',
+      labels,
+      timeZone: 'Asia/Tokyo',
+    });
+    // A quoted post nests as a blockquote inside the callout.
+    assert.ok(callout.startsWith('> [!quote]'));
+    assert.ok(callout.includes('> > the quoted words'));
   });
 
   it('lists a poll under the text', () => {
@@ -250,7 +289,11 @@ describe('formatTweetEmbed', () => {
         { label: 'No', percentage: 24.6 },
       ],
     };
-    const embed = formatTweetEmbed(tweet, { media: true, labels });
+    const embed = formatTweetEmbed(tweet, {
+      media: true,
+      style: 'blockquote',
+      labels,
+    });
     assert.ok(embed.includes('> - Yes — 75%'));
     assert.ok(embed.includes('> - No — 25%'));
   });

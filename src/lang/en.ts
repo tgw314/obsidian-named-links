@@ -21,7 +21,6 @@ const en = {
   },
   placeholder: 'Fetching title…',
   tweet: {
-    source: 'Original post',
     video: 'Video',
   },
   settings: {
@@ -91,6 +90,12 @@ const en = {
     tweetEmbedMedia: {
       name: 'Embed media in X posts',
       desc: "Show an embedded post's photos and videos under its text. Videos are linked from their thumbnails.",
+    },
+    tweetEmbedFormat: {
+      name: 'X post embed format',
+      desc: 'The shape an embedded post takes: a block quote, or an Obsidian callout with the author and time on its title line.',
+      blockquote: 'Block quote',
+      callout: 'Callout',
     },
     fxApiBase: {
       name: 'FxEmbed API instance',

@@ -25,7 +25,6 @@ const ja: Strings = {
   },
   placeholder: 'タイトル取得中…',
   tweet: {
-    source: '元のポスト',
     video: '動画',
   },
   settings: {
@@ -95,6 +94,12 @@ const ja: Strings = {
     tweetEmbedMedia: {
       name: 'X の投稿のメディアを埋め込む',
       desc: '埋め込んだ投稿の写真と動画を本文の下に表示します。動画はサムネイルからのリンクになります。',
+    },
+    tweetEmbedFormat: {
+      name: 'X の投稿の埋め込み形式',
+      desc: '埋め込んだ投稿の形。引用（blockquote）か、タイトル行に投稿者と日時を置く Obsidian のコールアウトか。',
+      blockquote: '引用',
+      callout: 'コールアウト',
     },
     fxApiBase: {
       name: 'FxEmbed API の接続先',

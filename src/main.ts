@@ -143,7 +143,8 @@ export default class NamedLinksPlugin extends Plugin {
         ? null
         : formatTweetEmbed(tweet, {
             media: this.settings.tweetEmbedMedia,
-            labels: { source: t().tweet.source, video: t().tweet.video },
+            style: this.settings.tweetEmbedFormat,
+            labels: { video: t().tweet.video },
           })
     );
     return Promise.race([lookup, deadline]).finally(() =>
