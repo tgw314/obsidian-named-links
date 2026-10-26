@@ -7,6 +7,9 @@ Paste a URL into Obsidian and get a markdown link titled with the page's name: `
 > [!NOTE]
 > Named Links is a maintained fork of [Auto Link Title](https://github.com/zolrath/obsidian-auto-link-title) by [@zolrath](https://github.com/zolrath), who deserves the credit for the original plugin. That project has been inactive since [December 2024](https://github.com/zolrath/obsidian-auto-link-title/releases/tag/1.5.5). This fork picks up from 1.5.5, fixes the bugs reported against it, and borrows the Japanese translation, FxTwitter lookups and `<URL>` pasting from [@yuu1111's fork](https://github.com/yuu1111/obsidian-auto-link-title).
 
+> [!NOTE]
+> This fork of Named Links adds X post text embedding. Its version numbers encode the upstream release it is based on, so they never collide with upstream's own: the major is 100 plus upstream's major, the minor is upstream's minor, and the patch is upstream's patch times 100 plus a fork revision. Version 101.3.300, for example, is the first fork release based on Named Links 1.3.3.
+
 ## What it does
 
 - **Paste a URL** and a `[Fetching title…](url)` placeholder goes in at once, then becomes the titled link. Paste several URLs and each is titled.
