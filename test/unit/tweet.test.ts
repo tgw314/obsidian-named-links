@@ -281,6 +281,22 @@ describe('formatTweetEmbed', () => {
     assert.ok(callout.includes('> > the quoted words'));
   });
 
+  it("escapes hashtags so the note does not grow the vault's tags", () => {
+    const tweet: Tweet = {
+      ...base,
+      text: 'I love #Obsidian and #メモ, code in C#, see https://example.com/a#b',
+    };
+    const embed = formatTweetEmbed(tweet, {
+      media: true,
+      style: 'blockquote',
+      labels,
+    });
+    assert.ok(embed.includes('I love \\#Obsidian and \\#メモ'));
+    assert.ok(embed.includes('code in C#'));
+    assert.ok(embed.includes('https://example.com/a#b'));
+    assert.ok(!embed.includes(' #Obsidian'));
+  });
+
   it('lists a poll under the text', () => {
     const tweet: Tweet = {
       ...base,

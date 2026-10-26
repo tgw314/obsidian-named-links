@@ -311,6 +311,17 @@ function escapeName(text: string): string {
   return text.replace(/([\\*_`[\]])/g, '\\$1');
 }
 
+/**
+ * Obsidian reads a `#tag` written in a note as one of the vault's own
+ * tags, so a post's hashtags would scatter tags the reader never made.
+ * Escape the `#` that opens a tag: at the start of a word, followed by
+ * a letter or number. One inside a word (`C#`) or a URL's fragment is
+ * not a tag in Obsidian either and is left as the author wrote it.
+ */
+function escapeHashtags(text: string): string {
+  return text.replace(/(^|\s)#(?=[\p{L}\p{N}_/-])/gu, '$1\\#');
+}
+
 /** Alt text can't hold the brackets or line breaks that would end it. */
 function altTextOf(text: string | null): string {
   return (text ?? '').replace(/[[\]\n\r]/g, ' ').trim();
@@ -363,7 +374,7 @@ function titleOf(tweet: Tweet, options: FormatTweetOptions): string {
 /** A post's own lines, before any quote it carries is nested into it. */
 function ownLines(tweet: Tweet, options: FormatTweetOptions): string[] {
   const lines: string[] = [headerOf(tweet, options), ''];
-  if (tweet.text !== '') lines.push(...tweet.text.split('\n'));
+  if (tweet.text !== '') lines.push(...escapeHashtags(tweet.text).split('\n'));
   if (options.media) {
     for (const photo of tweet.photos) {
       lines.push('', `![${altTextOf(photo.altText)}](${photo.url})`);
@@ -380,7 +391,9 @@ function ownLines(tweet: Tweet, options: FormatTweetOptions): string[] {
   if (tweet.poll) {
     lines.push('');
     for (const choice of tweet.poll) {
-      lines.push(`- ${choice.label} — ${Math.round(choice.percentage)}%`);
+      lines.push(
+        `- ${escapeHashtags(choice.label)} — ${Math.round(choice.percentage)}%`
+      );
     }
   }
   return lines;
