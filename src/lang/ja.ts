@@ -24,6 +24,10 @@ const ja: Strings = {
     importEmpty: (from: string) => `${from} の設定ファイルに設定がありません。`,
   },
   placeholder: 'タイトル取得中…',
+  tweet: {
+    source: '元のポスト',
+    video: '動画',
+  },
   settings: {
     conflict: {
       name: (other: string) => `${other} も有効になっています`,
@@ -83,6 +87,18 @@ const ja: Strings = {
     twitterProxy: {
       name: 'X の投稿を FxTwitter 経由で取得',
       desc: 'X はJavaScriptなしではタイトルを返しません。有効にすると、twitter.com と x.com のリンクを第三者サービスの fxtwitter.com または fixupx.com 経由で取得します。そのサービスにURLが送信されます。',
+    },
+    tweetEmbed: {
+      name: 'X の投稿を本文として埋め込む',
+      desc: '有効にすると、貼り付けた X の投稿が、FxEmbed API から取得した本文の引用としてノートに書き込まれます。FxEmbed は第三者サービスで、投稿のIDが送信されます。取得できない投稿は通常通りタイトル付きリンクになります。API の接続先は下の項目で指定します。',
+    },
+    tweetEmbedMedia: {
+      name: 'X の投稿のメディアを埋め込む',
+      desc: '埋め込んだ投稿の写真と動画を本文の下に表示します。動画はサムネイルからのリンクになります。',
+    },
+    fxApiBase: {
+      name: 'FxEmbed API の接続先',
+      desc: 'X の投稿の埋め込みを取得する接続先。自分で FxEmbed を運用している場合以外は変更不要です。',
     },
     excludedHeading: '除外するサイト',
     excludedSites: {

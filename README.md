@@ -15,6 +15,7 @@ Paste a URL into Obsidian and get a markdown link titled with the page's name: `
 - **Paste a URL over selected text** to link that text instead of fetching a title.
 - **Paste text over a selected URL** to make the text its title (off until you turn it on).
 - **Title URLs already in a note** with the **Add a title to an existing URL** command, at the cursor or across a selection.
+- **Embed an X post as text** (opt-in) and a pasted twitter.com or x.com post is written into the note as a quote of its text, media included, instead of a titled link.
 - **In vim mode**, putting a URL with `p` or `P` titles it too.
 - **Undo** gives back the URL as you pasted it; undo again to remove the paste.
 
@@ -66,6 +67,8 @@ Every command, setting, placeholder and rule, and the scripting API, is describe
 Named Links requests the pasted URL from your device, without loading its scripts, images or media, and checks the headers first so large files aren't downloaded. YouTube, Vimeo, Spotify and SoundCloud links go to that site's oEmbed API instead. When a Stack Exchange site (Stack Overflow and the rest of the network) blocks the request, the question is looked up through the network's API at api.stackexchange.com. Excluded sites are never requested, and neither is a link that came with its own title.
 
 The one opt-in exception: **Fetch X posts through FxTwitter** sends twitter.com and x.com URLs to fxtwitter.com or fixupx.com, a third-party service. There's no telemetry.
+
+A second opt-in: **Embed X posts as text** sends a pasted post's ID to the FxEmbed API instance in the settings (`api.fxtwitter.com` unless you run your own), which answers with the post's text.
 
 ## Mobile
 

@@ -20,6 +20,10 @@ const en = {
       `The settings file of ${from} has no settings in it.`,
   },
   placeholder: 'Fetching title…',
+  tweet: {
+    source: 'Original post',
+    video: 'Video',
+  },
   settings: {
     conflict: {
       name: (other: string) => `${other} is also enabled`,
@@ -79,6 +83,18 @@ const en = {
     twitterProxy: {
       name: 'Fetch X posts through FxTwitter',
       desc: 'X shows no title without JavaScript. When this is on, twitter.com and x.com links are looked up through fxtwitter.com or fixupx.com, a third-party service, which then sees those URLs.',
+    },
+    tweetEmbed: {
+      name: 'Embed X posts as text',
+      desc: "When this is on, a pasted X post is written into the note as a quote of its text, read from the FxEmbed API, a third-party service, which is sent the post's ID. A post that can't be read is titled the ordinary way instead. Uses the API instance below.",
+    },
+    tweetEmbedMedia: {
+      name: 'Embed media in X posts',
+      desc: "Show an embedded post's photos and videos under its text. Videos are linked from their thumbnails.",
+    },
+    fxApiBase: {
+      name: 'FxEmbed API instance',
+      desc: 'Where X post embeds are read from. Leave this as it is unless you run your own FxEmbed instance.',
     },
     excludedHeading: 'Excluded sites',
     excludedSites: {

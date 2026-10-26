@@ -28,6 +28,7 @@ import {
 import { BlockedError, type PageInfo } from './scraper';
 import { NamedLinksSettings, isExcluded, parseExcludedSites } from './settings';
 import { readableTitle } from './title';
+import { isTweetUrl } from './tweet';
 import {
   decodeUrlForDisplay,
   findLinks,
@@ -42,10 +43,14 @@ import {
 
 export type PageInfoFetcher = (url: string) => Promise<PageInfo | null>;
 
+/** The text an embedded X post is written as, or null when none was read. */
+export type TweetEmbedFetcher = (url: string) => Promise<string | null>;
+
 export interface LinkerHost {
   app: App;
   settings: NamedLinksSettings;
   fetchPageInfo: PageInfoFetcher;
+  fetchTweetEmbed: TweetEmbedFetcher;
 }
 
 interface PendingTitle {
@@ -53,6 +58,11 @@ interface PendingTitle {
   url: string;
   /** What goes back in place of the placeholder if no title is found. */
   fallback: string;
+  /**
+   * The URL is an X post the settings say to embed as text, so resolving
+   * it asks the FxEmbed API for the post before it tries for a title.
+   */
+  tweet?: boolean;
   /**
    * A title already known, when the lookup is only for the format's other
    * placeholders: a selection used as the title, or the link text a paste
@@ -128,6 +138,16 @@ export class Linker {
 
   private get settings(): NamedLinksSettings {
     return this.host.settings;
+  }
+
+  /** A lookup waiting on a placeholder, marked as a tweet when it is one. */
+  private pendingFor(url: string, fallback: string): PendingTitle {
+    return {
+      placeholder: newPlaceholder(),
+      url,
+      fallback,
+      ...(this.settings.tweetEmbed && isTweetUrl(url) ? { tweet: true } : {}),
+    };
   }
 
   /**
@@ -254,6 +274,14 @@ export class Linker {
           ? this.link(url, hostnameOf(url))
           : token;
       }
+      // An embedded post is written from the API's answer rather than
+      // from the page, so neither a link format that shows nothing of
+      // the page nor a title the paste carried settles it here.
+      if (this.settings.tweetEmbed && isTweetUrl(url)) {
+        const item = this.pendingFor(url, token);
+        pending.push(item);
+        return `[${item.placeholder}](${linkDestination(url)})`;
+      }
       // A format showing nothing from the page is finished straight away,
       // unfetched.
       if (!this.wantsPageInfo) return this.link(url, '');
@@ -275,9 +303,9 @@ export class Linker {
         });
         return `[${placeholder}](${linkDestination(url)})`;
       }
-      const placeholder = newPlaceholder();
-      pending.push({ placeholder, url, fallback: token });
-      return `[${placeholder}](${linkDestination(url)})`;
+      const item = this.pendingFor(url, token);
+      pending.push(item);
+      return `[${item.placeholder}](${linkDestination(url)})`;
     });
 
     const inserted = out.join('');
@@ -402,6 +430,22 @@ export class Linker {
     file: TFile | null,
     item: PendingTitle
   ): Promise<void> {
+    if (item.tweet) {
+      let embed: string | null = null;
+      try {
+        embed = await this.host.fetchTweetEmbed(item.url);
+      } catch (e) {
+        console.error('Named Links: fetching a tweet failed', e);
+      }
+      if (embed !== null) {
+        await this.applyResult(editor, file, item, () => embed, false);
+        return;
+      }
+      // No embed to write: the post was deleted or is protected, or the
+      // API is down. Title the link the ordinary way instead of leaving
+      // the reader with nothing the post could have given.
+    }
+
     let page: PageInfo | null = null;
     let blocked = false;
     try {
@@ -439,6 +483,24 @@ export class Linker {
               page
             );
 
+    await this.applyResult(editor, file, item, replacement, title === null);
+  }
+
+  /**
+   * Puts a lookup's outcome where its placeholder went: in the editor
+   * that took the paste, in another editor showing the note, or, when
+   * the note's editor has moved on, in the file itself. `replacement`
+   * reads the placeholder's destination, which the user may have edited
+   * meanwhile, and is only called for an outcome — a failed lookup puts
+   * the fallback back instead.
+   */
+  private async applyResult(
+    editor: Editor,
+    file: TFile | null,
+    item: PendingTitle,
+    replacement: (destination: string) => string,
+    failed: boolean
+  ): Promise<void> {
     // The editor that took the paste, if it is still on screen, then any
     // other editor showing the note. A closed editor's document can still
     // hold the placeholder, but nothing would ever save a change made there.
@@ -452,7 +514,7 @@ export class Linker {
           found.start,
           found.end,
           item.fallback,
-          title === null ? null : replacement(found.destination)
+          failed ? null : replacement(found.destination)
         );
         return;
       }
@@ -512,9 +574,9 @@ export class Linker {
       editor.replaceRange(this.link(url, ''), from, to);
       return;
     }
-    const placeholder = newPlaceholder();
     const original = line.slice(link.start, link.end);
-    const text = `[${placeholder}](${linkDestination(url)})`;
+    const item = this.pendingFor(url, original);
+    const text = `[${item.placeholder}](${linkDestination(url)})`;
     if (
       !changeTracked(
         editor,
@@ -524,9 +586,7 @@ export class Linker {
     ) {
       editor.replaceRange(text, from, to);
     }
-    await this.resolveAll(editor, file, [
-      { placeholder, url, fallback: original },
-    ]);
+    await this.resolveAll(editor, file, [item]);
   }
 
   /**
@@ -563,15 +623,11 @@ export class Linker {
           changes.push({ ...range, text: this.link(url, '') });
           continue;
         }
-        const placeholder = newPlaceholder();
-        pending.push({
-          placeholder,
-          url,
-          fallback: line.slice(link.start, link.end),
-        });
+        const item = this.pendingFor(url, line.slice(link.start, link.end));
+        pending.push(item);
         changes.push({
           ...range,
-          text: `[${placeholder}](${linkDestination(url)})`,
+          text: `[${item.placeholder}](${linkDestination(url)})`,
         });
       }
     }

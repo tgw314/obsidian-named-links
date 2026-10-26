@@ -1,5 +1,6 @@
 /** The settings shape, defaults, and the rules that read them. */
 import { DEFAULT_TEMPLATE, LINK_FORMATS, LinkFormat } from './linkFormat';
+import { DEFAULT_FX_API_BASE } from './tweet';
 import { domainOf, hostMatchesDomain, toAbsoluteUrl } from './url';
 
 /** What an excluded site's URL becomes when pasted. */
@@ -24,6 +25,12 @@ export interface NamedLinksSettings {
   domainTitleRules: string;
   /** Look X posts up through FxTwitter, a third-party service. */
   twitterProxy: boolean;
+  /** Embed X posts as text through the FxEmbed API, a third-party service. */
+  tweetEmbed: boolean;
+  /** Embed an embedded post's photos and videos under its text. */
+  tweetEmbedMedia: boolean;
+  /** The FxEmbed instance tweet embeds are read from. */
+  fxApiBase: string;
   /** Sites never fetched, one per line or comma separated. */
   excludedSites: string;
   excludedSiteFormat: ExcludedSiteFormat;
@@ -44,6 +51,9 @@ export const DEFAULT_SETTINGS: NamedLinksSettings = {
   titleRules: '',
   domainTitleRules: '',
   twitterProxy: false,
+  tweetEmbed: false,
+  tweetEmbedMedia: true,
+  fxApiBase: DEFAULT_FX_API_BASE,
   excludedSites: '',
   excludedSiteFormat: 'url',
   linkFormat: 'markdown',

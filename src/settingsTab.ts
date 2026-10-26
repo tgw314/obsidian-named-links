@@ -293,6 +293,31 @@ export class NamedLinksSettingTab extends PluginSettingTab {
               defaultValue: DEFAULT_SETTINGS.twitterProxy,
             },
           },
+          {
+            ...s.tweetEmbed,
+            control: {
+              type: 'toggle',
+              key: 'tweetEmbed',
+              defaultValue: DEFAULT_SETTINGS.tweetEmbed,
+            },
+          },
+          {
+            ...s.tweetEmbedMedia,
+            control: {
+              type: 'toggle',
+              key: 'tweetEmbedMedia',
+              defaultValue: DEFAULT_SETTINGS.tweetEmbedMedia,
+            },
+          },
+          {
+            ...s.fxApiBase,
+            control: {
+              type: 'text',
+              key: 'fxApiBase',
+              defaultValue: DEFAULT_SETTINGS.fxApiBase,
+              placeholder: DEFAULT_SETTINGS.fxApiBase,
+            },
+          },
         ],
       },
       {

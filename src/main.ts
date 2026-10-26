@@ -25,6 +25,7 @@ import {
   settingsFromAutoLinkTitle,
 } from './settings';
 import { NamedLinksSettingTab } from './settingsTab';
+import { fetchTweet, formatTweetEmbed } from './tweet';
 import { toAbsoluteUrl, unwrapAutolink } from './url';
 import { vimPutWatcher } from './vim';
 
@@ -118,6 +119,32 @@ export default class NamedLinksPlugin extends Plugin {
       info === null
         ? null
         : { ...info, title: this.cleanUp(info.title, url, info.siteName) }
+    );
+    return Promise.race([lookup, deadline]).finally(() =>
+      window.clearTimeout(timer)
+    );
+  };
+
+  /**
+   * An X post written out as text through the FxEmbed API, or null when
+   * the post can't be read. Capped by the same deadline as a title
+   * lookup, so a stuck API can't hold the placeholder either.
+   */
+  fetchTweetEmbed = (url: string): Promise<string | null> => {
+    let timer = 0;
+    const deadline = new Promise<null>((resolve) => {
+      timer = window.setTimeout(() => resolve(null), this.requestTimeoutMs);
+    });
+    const lookup = fetchTweet(url, {
+      http: obsidianHttpClient(this.requestTimeoutMs),
+      apiBase: this.settings.fxApiBase,
+    }).then((tweet) =>
+      tweet === null
+        ? null
+        : formatTweetEmbed(tweet, {
+            media: this.settings.tweetEmbedMedia,
+            labels: { source: t().tweet.source, video: t().tweet.video },
+          })
     );
     return Promise.race([lookup, deadline]).finally(() =>
       window.clearTimeout(timer)
