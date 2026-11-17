@@ -312,6 +312,21 @@ describe('formatTweetEmbed', () => {
     assert.ok(embed.includes('https://example.com/a_b_c'));
   });
 
+  it("escapes the underscores in the author's handle, not in its URL", () => {
+    const tweet: Tweet = {
+      ...base,
+      author: { name: 'someone', screenName: 'some_user' },
+    };
+    const embed = formatTweetEmbed(tweet, {
+      media: true,
+      style: 'blockquote',
+      labels,
+      timeZone: 'Asia/Tokyo',
+    });
+    assert.ok(embed.includes('(@some\\_user)'));
+    assert.ok(embed.includes('[someone](https://x.com/some_user)'));
+  });
+
   it('lists a poll under the text', () => {
     const tweet: Tweet = {
       ...base,

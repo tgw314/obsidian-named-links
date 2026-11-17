@@ -352,6 +352,17 @@ function profileUrlOf(tweet: Tweet): string {
 }
 
 /**
+ * The author's handle as it is written out in the heading. Its
+ * underscores are escaped like the prose's — an unescaped one pairs
+ * with the next underscore on the line and slants everything between —
+ * while the profile URL above keeps the handle as it is, since there
+ * it is an address, not text.
+ */
+function handleOf(tweet: Tweet): string {
+  return tweet.author.screenName.replace(/_/g, '\\_');
+}
+
+/**
  * When the post was made, as `YYYY-MM-DD HH:mm` in the chosen timezone,
  * or the plain date when the API gave no time of day.
  */
@@ -379,14 +390,14 @@ function whenOf(tweet: Tweet, options: FormatTweetOptions): string | null {
  * back at its foot.
  */
 function headerOf(tweet: Tweet, options: FormatTweetOptions): string {
-  const who = `**[${escapeName(tweet.author.name)}](${profileUrlOf(tweet)}) (@${tweet.author.screenName})**`;
+  const who = `**[${escapeName(tweet.author.name)}](${profileUrlOf(tweet)}) (@${handleOf(tweet)})**`;
   const when = whenOf(tweet, options);
   return when ? `${who} · [${when}](${tweet.url})` : who;
 }
 
 /** The same heading, unbolded, for a callout's title line. */
 function titleOf(tweet: Tweet, options: FormatTweetOptions): string {
-  const who = `[${escapeName(tweet.author.name)}](${profileUrlOf(tweet)}) (@${tweet.author.screenName})`;
+  const who = `[${escapeName(tweet.author.name)}](${profileUrlOf(tweet)}) (@${handleOf(tweet)})`;
   const when = whenOf(tweet, options);
   return when ? `${who} · [${when}](${tweet.url})` : who;
 }
