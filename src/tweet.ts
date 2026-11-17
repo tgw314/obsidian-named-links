@@ -322,6 +322,26 @@ function escapeHashtags(text: string): string {
   return text.replace(/(^|\s)#(?=[\p{L}\p{N}_/-])/gu, '$1\\#');
 }
 
+/**
+ * A `_` in a post is prose — a screen name, a file name, plain
+ * emphasis the author typed — but Markdown reads pairs of them as
+ * italics, so the words between two underscores come out slanted.
+ * Escape every underscore outside a URL; a URL's own underscores are
+ * part of the address and would break it. An escaped underscore
+ * renders as the underscore it is, so nothing visible changes.
+ */
+function escapeUnderscores(text: string): string {
+  return text
+    .split(/(https?:\/\/[^\s]+)/g)
+    .map((part, index) => (index % 2 === 1 ? part : part.replace(/_/g, '\\_')))
+    .join('');
+}
+
+/** A post's prose with the marks Obsidian would misread escaped. */
+function escapeProse(text: string): string {
+  return escapeHashtags(escapeUnderscores(text));
+}
+
 /** Alt text can't hold the brackets or line breaks that would end it. */
 function altTextOf(text: string | null): string {
   return (text ?? '').replace(/[[\]\n\r]/g, ' ').trim();
@@ -374,7 +394,7 @@ function titleOf(tweet: Tweet, options: FormatTweetOptions): string {
 /** A post's own lines, before any quote it carries is nested into it. */
 function ownLines(tweet: Tweet, options: FormatTweetOptions): string[] {
   const lines: string[] = [headerOf(tweet, options), ''];
-  if (tweet.text !== '') lines.push(...escapeHashtags(tweet.text).split('\n'));
+  if (tweet.text !== '') lines.push(...escapeProse(tweet.text).split('\n'));
   if (options.media) {
     for (const photo of tweet.photos) {
       lines.push('', `![${altTextOf(photo.altText)}](${photo.url})`);
@@ -392,7 +412,7 @@ function ownLines(tweet: Tweet, options: FormatTweetOptions): string[] {
     lines.push('');
     for (const choice of tweet.poll) {
       lines.push(
-        `- ${escapeHashtags(choice.label)} — ${Math.round(choice.percentage)}%`
+        `- ${escapeProse(choice.label)} — ${Math.round(choice.percentage)}%`
       );
     }
   }

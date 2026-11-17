@@ -297,6 +297,21 @@ describe('formatTweetEmbed', () => {
     assert.ok(!embed.includes(' #Obsidian'));
   });
 
+  it('escapes underscores so pairs of them do not italicise the text', () => {
+    const tweet: Tweet = {
+      ...base,
+      text: 'by @some_user, read _this_ and __that__, see https://example.com/a_b_c',
+    };
+    const embed = formatTweetEmbed(tweet, {
+      media: true,
+      style: 'blockquote',
+      labels,
+    });
+    assert.ok(embed.includes('by @some\\_user'));
+    assert.ok(embed.includes('read \\_this\\_ and \\_\\_that\\_\\_'));
+    assert.ok(embed.includes('https://example.com/a_b_c'));
+  });
+
   it('lists a poll under the text', () => {
     const tweet: Tweet = {
       ...base,
